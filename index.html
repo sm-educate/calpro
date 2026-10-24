@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sm-educate-calculator | Free Online Multi-Calculator Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Lucide Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Financial & Health Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .calculator-grid-bg {
+            background-image: radial-gradient(rgba(2, 132, 199, 0.08) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .dark .calculator-grid-bg {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-full flex flex-col transition-colors duration-200 calculator-grid-bg">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 pointer-events-none text-sm font-medium">
+        <i class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+        <span id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <!-- Header Section -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Branding -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                        <i class="fa-solid fa-calculator text-xl"></i>
+                    </div>
+                    <div>
+                        <a href="#" onclick="showHome()" class="font-bold text-xl tracking-tight bg-gradient-to-r from-sky-600 to-indigo-600 dark:from-sky-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                            sm-educate-calculator
+                        </a>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block font-medium">Free Online Calculators for Math, Fitness, Finance & Science</p>
+                    </div>
+                </div>
+
+                <!-- Global Live Search Bar -->
+                <div class="flex-1 max-w-md mx-4 hidden md:block relative">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="global-search" placeholder="Search calculator (e.g. Loan, BMI, Science, Percentage)..." 
+                               oninput="handleSearch(this.value)"
+                               class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 dark:focus:ring-sky-400 text-slate-800 dark:text-slate-100 transition">
+                    </div>
+                    <!-- Quick Dropdown Search Results -->
+                    <div id="search-results" class="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 hidden z-50 overflow-hidden max-h-80 overflow-y-auto"></div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" onclick="toggleTheme()" class="p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors" title="Toggle Dark/Light Mode">
+                        <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+                    </button>
+                    <button onclick="toggleHistoryDrawer()" class="p-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative" title="View Saved Calculation History">
+                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                        <span id="history-badge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-sky-500 rounded-full hidden"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar -->
+            <div class="pb-3 md:hidden">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="mobile-search" placeholder="Search calculators..." 
+                           oninput="handleSearch(this.value)"
+                           class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100">
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Category Tabs -->
+        <nav class="bg-slate-100/80 dark:bg-slate-800/80 border-t border-slate-200/60 dark:border-slate-700/60 px-4">
+            <div class="max-w-7xl mx-auto flex items-center gap-1 overflow-x-auto py-2 scrollbar-none text-sm font-medium">
+                <button onclick="switchTab('all')" class="nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap bg-sky-600 text-white shadow-sm transition" data-category="all">
+                    <i class="fa-solid fa-grid-2 mr-1.5"></i>All Tools
+                </button>
+                <button onclick="switchTab('finance')" class="nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" data-category="finance">
+                    <i class="fa-solid fa-coins mr-1.5 text-emerald-500"></i>Finance
+                </button>
+                <button onclick="switchTab('fitness')" class="nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" data-category="fitness">
+                    <i class="fa-solid fa-heart-pulse mr-1.5 text-rose-500"></i>Fitness & Health
+                </button>
+                <button onclick="switchTab('math')" class="nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" data-category="math">
+                    <i class="fa-solid fa-square-root-variable mr-1.5 text-sky-500"></i>Math & Standard
+                </button>
+                <button onclick="switchTab('science')" class="nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition" data-category="science">
+                    <i class="fa-solid fa-flask mr-1.5 text-purple-500"></i>Science & Unit
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Category Banner Quick Switch -->
+        <div id="hero-banner" class="mb-8 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white shadow-lg relative overflow-hidden">
+            <div class="relative z-10 max-w-2xl">
+                <span class="px-3 py-1 bg-sky-500/20 text-sky-300 border border-sky-400/30 text-xs font-semibold rounded-full uppercase tracking-wider">Multi-Purpose Hub</span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold mt-3 tracking-tight">Smart, Fast & Free Online Calculation Tools</h1>
+                <p class="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Perform instant financial modeling, health calculations, mathematical computations, and unit conversions with visual charts and detailed breakdowns.
+                </p>
+            </div>
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-white">
+                <i class="fa-solid fa-calculator text-[220px]"></i>
+            </div>
+        </div>
+
+        <!-- Calculators Grid View -->
+        <div id="calculators-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Loan / Mortgage Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="finance" data-name="loan mortgage calculator interest payoff">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-house-circle-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Loan / Mortgage</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Finance</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Calculate monthly amortization, total interest paid, and visualize total loan payoff over time.</p>
+                </div>
+                <button onclick="openCalculator('loan')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Compound Interest Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="finance" data-name="compound interest investment calculator growth">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-chart-line-up"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Compound Interest</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Finance</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Plan savings & investments with recurring monthly deposits, custom interest compounding & growth curves.</p>
+                </div>
+                <button onclick="openCalculator('compound')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- BMI Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="fitness" data-name="bmi body mass index weight height health fitness">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-weight-scale"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">BMI Calculator</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Fitness & Health</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Calculate Body Mass Index using Metric or US Metric units with visual category gauges and health ranges.</p>
+                </div>
+                <button onclick="openCalculator('bmi')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Calorie / TDEE Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="fitness" data-name="calorie tdee bmr weight loss gain fitness mifflin st jeor">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Calorie & TDEE</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Fitness & Health</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Estimate Basal Metabolic Rate (BMR) and daily expenditure for weight maintenance, loss, or muscle gain.</p>
+                </div>
+                <button onclick="openCalculator('calorie')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Scientific Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="math" data-name="scientific calculator standard trig log square root power math key pad">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Scientific / Standard</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Math</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Interactive on-screen scientific keypad supporting trig functions, logs, exponents, and memory registers.</p>
+                </div>
+                <button onclick="openCalculator('scientific')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Percentage Calculator Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="math" data-name="percentage calculator ratio increase decrease ratio difference">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-percent"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Percentage Solver</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Math</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Solve percentage proportions, percent increase/decrease, and relative percentage variations quickly.</p>
+                </div>
+                <button onclick="openCalculator('percentage')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Unit Converter Card -->
+            <div class="calc-card bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between" data-category="science" data-name="unit converter science length mass weight temperature speed volume">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-lg">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-base">Unit Converter</h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400">Science</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mb-4">Convert units dynamically across Length, Weight, Temperature, Volume, and Speed dimensions.</p>
+                </div>
+                <button onclick="openCalculator('unit')" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-700/60 hover:bg-sky-600 hover:text-white dark:hover:bg-sky-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    Open Calculator <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ACTIVE CALCULATOR CONTAINER PANEL -->
+        <div id="calculator-panel" class="hidden my-4 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-xl overflow-hidden transition-all">
+            <!-- Modal/Panel Header -->
+            <div class="px-6 py-4 bg-slate-100/70 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <button onclick="closeCalculator()" class="p-2 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition" title="Back to All Tools">
+                        <i class="fa-solid fa-arrow-left text-base"></i>
+                    </button>
+                    <div>
+                        <h2 id="calc-panel-title" class="font-bold text-lg text-slate-900 dark:text-white">Calculator</h2>
+                        <p id="calc-panel-subtitle" class="text-xs text-slate-500 dark:text-slate-400">Category Tool</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeCalculator()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-2 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active View dynamic body contents -->
+            <div id="calc-panel-body" class="p-6 sm:p-8">
+                <!-- Injected via JavaScript based on chosen tool -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- History Log Drawer -->
+    <div id="history-drawer" class="fixed inset-y-0 right-0 w-80 sm:w-96 bg-white dark:bg-slate-800 shadow-2xl border-l border-slate-200 dark:border-slate-700 z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-sky-600 dark:text-sky-400"></i>
+                <h3 class="font-bold text-slate-900 dark:text-white">Calculation History</h3>
+            </div>
+            <button onclick="toggleHistoryDrawer()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div id="history-list" class="flex-1 p-4 overflow-y-auto space-y-3">
+            <!-- Dynamic history items -->
+            <p id="empty-history-msg" class="text-center text-slate-400 dark:text-slate-500 text-sm py-12">No saved calculations yet.</p>
+        </div>
+
+        <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50">
+            <button onclick="clearHistory()" class="flex-1 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 border border-rose-200 dark:border-rose-900/50 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                <i class="fa-solid fa-trash-can mr-1"></i> Clear History
+            </button>
+            <button onclick="exportHistory()" class="flex-1 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-lg transition">
+                <i class="fa-solid fa-download mr-1"></i> Export TXT
+            </button>
+        </div>
+    </div>
+
+    <!-- Backdrop for Drawer -->
+    <div id="drawer-backdrop" onclick="toggleHistoryDrawer()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity"></div>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-800 dark:text-slate-200">sm-educate-calculator</span>
+                <span>&copy; 2026. All calculations are for educational purposes.</span>
+            </div>
+            <div class="flex gap-4">
+                <a href="#" onclick="switchTab('finance'); return false;" class="hover:underline">Finance</a>
+                <a href="#" onclick="switchTab('fitness'); return false;" class="hover:underline">Health</a>
+                <a href="#" onclick="switchTab('math'); return false;" class="hover:underline">Math</a>
+                <a href="#" onclick="switchTab('science'); return false;" class="hover:underline">Science</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MAIN JAVASCRIPT LOGIC -->
+    <script>
+        // Global State & History Management
+        let history = JSON.parse(localStorage.getItem('sm_calc_history') || '[]');
+        let activeChart = null;
+
+        const calculatorRegistry = {
+            loan: { name: 'Loan & Mortgage Calculator', category: 'Finance', icon: 'fa-house-circle-check', render: renderLoanCalc },
+            compound: { name: 'Compound Interest Calculator', category: 'Finance', icon: 'fa-chart-line-up', render: renderCompoundCalc },
+            bmi: { name: 'BMI Calculator', category: 'Fitness & Health', icon: 'fa-weight-scale', render: renderBMICalc },
+            calorie: { name: 'Calorie & TDEE Calculator', category: 'Fitness & Health', icon: 'fa-fire', render: renderCalorieCalc },
+            scientific: { name: 'Scientific Calculator', category: 'Math', icon: 'fa-calculator', render: renderScientificCalc },
+            percentage: { name: 'Percentage Calculator', category: 'Math', icon: 'fa-percent', render: renderPercentageCalc },
+            unit: { name: 'Unit Converter', category: 'Science', icon: 'fa-arrow-right-arrow-left', render: renderUnitCalc }
+        };
+
+        // Theme Switcher Initialization
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            if (activeChart) activeChart.update();
+        }
+        initTheme();
+
+        // Search functionality
+        function handleSearch(query) {
+            const q = query.toLowerCase().trim();
+            const resultsBox = document.getElementById('search-results');
+            
+            // Filter cards on grid if no specific calculator open
+            const cards = document.querySelectorAll('.calc-card');
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                if (nameData.includes(q)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Populate top search dropdown if typing in header bar
+            if (q.length > 0) {
+                let matches = Object.keys(calculatorRegistry).filter(key => {
+                    const tool = calculatorRegistry[key];
+                    return tool.name.toLowerCase().includes(q) || tool.category.toLowerCase().includes(q);
+                });
+
+                if (matches.length > 0) {
+                    resultsBox.innerHTML = matches.map(key => `
+                        <div onclick="openCalculator('${key}'); hideSearchResults();" class="p-3 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer flex items-center justify-between text-sm border-b border-slate-100 dark:border-slate-700/50 last:border-none">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid ${calculatorRegistry[key].icon} text-sky-500"></i>
+                                <span class="font-semibold text-slate-800 dark:text-slate-100">${calculatorRegistry[key].name}</span>
+                            </div>
+                            <span class="text-xs text-slate-400">${calculatorRegistry[key].category}</span>
+                        </div>
+                    `).join('');
+                    resultsBox.classList.remove('hidden');
+                } else {
+                    resultsBox.innerHTML = `<div class="p-4 text-xs text-slate-400 text-center">No matching calculators found</div>`;
+                    resultsBox.classList.remove('hidden');
+                }
+            } else {
+                hideSearchResults();
+            }
+        }
+
+        function hideSearchResults() {
+            document.getElementById('search-results').classList.add('hidden');
+        }
+
+        // Tab Switching
+        function switchTab(category) {
+            closeCalculator();
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                if (tab.getAttribute('data-category') === category) {
+                    tab.className = "nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap bg-sky-600 text-white shadow-sm transition";
+                } else {
+                    tab.className = "nav-tab px-4 py-1.5 rounded-lg whitespace-nowrap text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition";
+                }
+            });
+
+            const cards = document.querySelectorAll('.calc-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function showHome() {
+            switchTab('all');
+            closeCalculator();
+        }
+
+        // Open Active Calculator Panel
+        function openCalculator(key) {
+            const tool = calculatorRegistry[key];
+            if (!tool) return;
+
+            // Hide grid and hero banner, show active panel
+            document.getElementById('hero-banner').classList.add('hidden');
+            document.getElementById('calculators-grid').classList.add('hidden');
+            
+            const panel = document.getElementById('calculator-panel');
+            panel.classList.remove('hidden');
+
+            document.getElementById('calc-panel-title').innerText = tool.name;
+            document.getElementById('calc-panel-subtitle').innerText = tool.category + " Calculator";
+
+            // Render form layout
+            tool.render();
+            window.scrollTo({ top: panel.offsetTop - 80, behavior: 'smooth' });
+        }
+
+        function closeCalculator() {
+            document.getElementById('calculator-panel').classList.add('hidden');
+            document.getElementById('hero-banner').classList.remove('hidden');
+            document.getElementById('calculators-grid').classList.remove('hidden');
+            if (activeChart) {
+                activeChart.destroy();
+                activeChart = null;
+            }
+        }
+
+        // Toast Notification System
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-20');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-20');
+            }, 2500);
+        }
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Result copied to clipboard!');
+        }
+
+        // History System
+        function saveToHistory(calcType, summary, detail) {
+            const entry = {
+                id: Date.now(),
+                title: calcType,
+                summary: summary,
+                detail: detail,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            history.unshift(entry);
+            if (history.length > 30) history.pop();
+            localStorage.setItem('sm_calc_history', JSON.stringify(history));
+            updateHistoryUI();
+        }
+
+        function updateHistoryUI() {
+            const list = document.getElementById('history-list');
+            const badge = document.getElementById('history-badge');
+
+            if (history.length > 0) {
+                badge.classList.remove('hidden');
+                list.innerHTML = history.map(item => `
+                    <div class="p-3 bg-slate-100 dark:bg-slate-700/50 rounded-xl text-xs space-y-1 relative group">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-800 dark:text-slate-100">${item.title}</span>
+                            <span class="text-[10px] text-slate-400">${item.date}</span>
+                        </div>
+                        <div class="font-semibold text-sky-600 dark:text-sky-400 text-sm">${item.summary}</div>
+                        <div class="text-slate-500 dark:text-slate-300 text-[11px] truncate">${item.detail}</div>
+                        <button onclick="copyToClipboard('${item.summary}')" class="mt-1 text-[11px] text-slate-600 dark:text-slate-300 hover:underline inline-flex items-center gap-1">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                badge.classList.add('hidden');
+                list.innerHTML = `<p id="empty-history-msg" class="text-center text-slate-400 dark:text-slate-500 text-sm py-12">No saved calculations yet.</p>`;
+            }
+        }
+
+        function toggleHistoryDrawer() {
+            const drawer = document.getElementById('history-drawer');
+            const backdrop = document.getElementById('drawer-backdrop');
+            const isOpened = !drawer.classList.contains('translate-x-full');
+
+            if (isOpened) {
+                drawer.classList.add('translate-x-full');
+                backdrop.classList.add('hidden', 'opacity-0');
+            } else {
+                updateHistoryUI();
+                drawer.classList.remove('translate-x-full');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function clearHistory() {
+            history = [];
+            localStorage.removeItem('sm_calc_history');
+            updateHistoryUI();
+            showToast('History cleared');
+        }
+
+        function exportHistory() {
+            if (history.length === 0) {
+                showToast('History is empty!');
+                return;
+            }
+            let text = "=== SM-EDUCATE-CALCULATOR HISTORY ===\n\n";
+            history.forEach((h, idx) => {
+                text += `${idx + 1}. [${h.title}] - ${h.date}\n   Summary: ${h.summary}\n   Details: ${h.detail}\n\n`;
+            });
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'calc_history.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exported history as text file');
+        }
+
+        /* ==========================================================================
+           1. FINANCE: LOAN / MORTGAGE CALCULATOR
+           ========================================================================== */
+        function renderLoanCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Form Controls -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Loan Principal Amount ($)</label>
+                            <input type="number" id="loan-amount" value="250000" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none text-slate-800 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Annual Interest Rate (%)</label>
+                            <input type="number" step="0.01" id="loan-rate" value="6.5" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none text-slate-800 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Loan Term (Years)</label>
+                            <input type="number" id="loan-term" value="30" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none text-slate-800 dark:text-slate-100">
+                        </div>
+                        <button onclick="calculateLoan()" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calculator"></i> Calculate Loan
+                        </button>
+                    </div>
+
+                    <!-- Results & Visual Chart -->
+                    <div class="lg:col-span-7 flex flex-col justify-between bg-slate-50 dark:bg-slate-900/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div id="loan-results-summary" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                            <!-- Injected -->
+                        </div>
+                        <div class="relative max-h-64 flex justify-center items-center">
+                            <canvas id="loanChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            calculateLoan();
+        }
+
+        function calculateLoan() {
+            const principal = parseFloat(document.getElementById('loan-amount').value) || 0;
+            const annualRate = parseFloat(document.getElementById('loan-rate').value) || 0;
+            const years = parseFloat(document.getElementById('loan-term').value) || 0;
+
+            const monthlyRate = (annualRate / 100) / 12;
+            const totalPayments = years * 12;
+
+            let monthlyPayment = 0;
+            if (monthlyRate > 0) {
+                monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) / (Math.pow(1 + monthlyRate, totalPayments) - 1);
+            } else {
+                monthlyPayment = principal / totalPayments;
+            }
+
+            const totalPayoff = monthlyPayment * totalPayments;
+            const totalInterest = totalPayoff - principal;
+
+            const summaryEl = document.getElementById('loan-results-summary');
+            summaryEl.innerHTML = `
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <span class="text-[11px] text-slate-400 block font-medium">Monthly Payment</span>
+                    <span class="text-xl font-extrabold text-sky-600 dark:text-sky-400">$${monthlyPayment.toFixed(2)}</span>
+                </div>
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <span class="text-[11px] text-slate-400 block font-medium">Total Interest</span>
+                    <span class="text-xl font-extrabold text-rose-500">$${totalInterest.toFixed(2)}</span>
+                </div>
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm col-span-2 sm:col-span-1">
+                    <span class="text-[11px] text-slate-400 block font-medium">Total Amount Paid</span>
+                    <span class="text-xl font-extrabold text-emerald-500">$${totalPayoff.toFixed(2)}</span>
+                </div>
+            `;
+
+            saveToHistory('Loan Calculator', `$${monthlyPayment.toFixed(2)}/mo`, `Principal: $${principal}, Interest: $${totalInterest.toFixed(0)}, Term: ${years}y`);
+
+            // Update Doughnut Chart
+            const ctx = document.getElementById('loanChart').getContext('2d');
+            if (activeChart) activeChart.destroy();
+            activeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Principal Amount', 'Total Interest'],
+                    datasets: [{
+                        data: [principal, totalInterest],
+                        backgroundColor: ['#0284c7', '#f43f5e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Inter', size: 12 } } }
+                    }
+                }
+            });
+        }
+
+        /* ==========================================================================
+           2. FINANCE: COMPOUND INTEREST CALCULATOR
+           ========================================================================== */
+        function renderCompoundCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Initial Investment ($)</label>
+                            <input type="number" id="ci-principal" value="10000" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Monthly Deposit ($)</label>
+                            <input type="number" id="ci-monthly" value="200" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Interest Rate (%)</label>
+                                <input type="number" step="0.1" id="ci-rate" value="7" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Years to Grow</label>
+                                <input type="number" id="ci-years" value="10" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                        </div>
+                        <button onclick="calculateCompound()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-chart-line-up"></i> Calculate Investment
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                        <div id="ci-results-summary" class="grid grid-cols-3 gap-3 mb-4"></div>
+                        <div class="relative h-64">
+                            <canvas id="ciChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+            calculateCompound();
+        }
+
+        function calculateCompound() {
+            const P = parseFloat(document.getElementById('ci-principal').value) || 0;
+            const PMT = parseFloat(document.getElementById('ci-monthly').value) || 0;
+            const r = (parseFloat(document.getElementById('ci-rate').value) || 0) / 100;
+            const t = parseFloat(document.getElementById('ci-years').value) || 0;
+
+            let currentBalance = P;
+            let totalDeposits = P;
+            const yearlyLabels = [];
+            const balanceData = [];
+            const depositData = [];
+
+            for (let year = 1; year <= t; year++) {
+                for (let month = 1; month <= 12; month++) {
+                    currentBalance += PMT;
+                    totalDeposits += PMT;
+                    currentBalance += currentBalance * (r / 12);
+                }
+                yearlyLabels.push(`Yr ${year}`);
+                balanceData.push(currentBalance.toFixed(2));
+                depositData.push(totalDeposits.toFixed(2));
+            }
+
+            const totalInterest = currentBalance - totalDeposits;
+
+            document.getElementById('ci-results-summary').innerHTML = `
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-[11px] text-slate-400 block font-medium">Future Value</span>
+                    <span class="text-lg sm:text-xl font-extrabold text-emerald-500">$${currentBalance.toFixed(0)}</span>
+                </div>
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-[11px] text-slate-400 block font-medium">Total Contributions</span>
+                    <span class="text-lg sm:text-xl font-extrabold text-sky-500">$${totalDeposits.toFixed(0)}</span>
+                </div>
+                <div class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-[11px] text-slate-400 block font-medium">Total Interest</span>
+                    <span class="text-lg sm:text-xl font-extrabold text-amber-500">$${totalInterest.toFixed(0)}</span>
+                </div>
+            `;
+
+            saveToHistory('Compound Interest', `$${currentBalance.toFixed(0)} Total`, `Contributions: $${totalDeposits.toFixed(0)}, Interest Earned: $${totalInterest.toFixed(0)}`);
+
+            const ctx = document.getElementById('ciChart').getContext('2d');
+            if (activeChart) activeChart.destroy();
+            activeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: yearlyLabels,
+                    datasets: [
+                        { label: 'Total Portfolio', data: balanceData, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'Total Contributions', data: depositData, borderColor: '#0284c7', backgroundColor: 'transparent', borderDash: [4, 4] }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        /* ==========================================================================
+           3. FITNESS: BMI CALCULATOR
+           ========================================================================== */
+        function renderBMICalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-semibold">
+                            <button id="bmi-unit-metric" onclick="setBMIUnit('metric')" class="flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm text-sky-600 dark:text-sky-400">Metric (cm, kg)</button>
+                            <button id="bmi-unit-us" onclick="setBMIUnit('us')" class="flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300">US Standard (in, lbs)</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Age</label>
+                                <input type="number" id="bmi-age" value="28" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Gender</label>
+                                <select id="bmi-gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label id="bmi-height-label" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Height (cm)</label>
+                            <input type="number" id="bmi-height" value="175" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                        </div>
+                        <div>
+                            <label id="bmi-weight-label" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Weight (kg)</label>
+                            <input type="number" id="bmi-weight" value="70" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                        </div>
+                        <button onclick="calculateBMI()" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-heart-pulse"></i> Calculate BMI
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Your Body Mass Index</span>
+                            <div class="flex items-baseline gap-3 mt-2">
+                                <span id="bmi-score" class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white">22.9</span>
+                                <span id="bmi-category" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">Normal Weight</span>
+                            </div>
+                        </div>
+
+                        <!-- Visual Gauge Slider -->
+                        <div class="my-8">
+                            <div class="relative h-4 rounded-full w-full bg-gradient-to-r from-sky-400 via-emerald-400 via-amber-400 to-rose-500 overflow-visible">
+                                <div id="bmi-pointer" class="absolute -top-2 w-8 h-8 -ml-4 bg-white dark:bg-slate-900 border-4 border-slate-800 dark:border-white rounded-full shadow-lg transition-all duration-500"></div>
+                            </div>
+                            <div class="flex justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-3 font-semibold">
+                                <span>Underweight (&lt;18.5)</span>
+                                <span>Normal (18.5-24.9)</span>
+                                <span>Overweight (25-29.9)</span>
+                                <span>Obese (&gt;30)</span>
+                            </div>
+                        </div>
+
+                        <div id="bmi-advice" class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
+                            Healthy weight range for your height is between 57 kg and 76 kg.
+                        </div>
+                    </div>
+                </div>
+            `;
+            calculateBMI();
+        }
+
+        let bmiUnitMode = 'metric';
+        function setBMIUnit(mode) {
+            bmiUnitMode = mode;
+            const btnM = document.getElementById('bmi-unit-metric');
+            const btnUS = document.getElementById('bmi-unit-us');
+            const hLabel = document.getElementById('bmi-height-label');
+            const wLabel = document.getElementById('bmi-weight-label');
+
+            if (mode === 'metric') {
+                btnM.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm text-sky-600 dark:text-sky-400";
+                btnUS.className = "flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300";
+                hLabel.innerText = "Height (cm)";
+                wLabel.innerText = "Weight (kg)";
+                document.getElementById('bmi-height').value = "175";
+                document.getElementById('bmi-weight').value = "70";
+            } else {
+                btnUS.className = "flex-1 py-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm text-sky-600 dark:text-sky-400";
+                btnM.className = "flex-1 py-2 rounded-lg text-slate-600 dark:text-slate-300";
+                hLabel.innerText = "Height (inches)";
+                wLabel.innerText = "Weight (lbs)";
+                document.getElementById('bmi-height').value = "69";
+                document.getElementById('bmi-weight').value = "154";
+            }
+            calculateBMI();
+        }
+
+        function calculateBMI() {
+            let h = parseFloat(document.getElementById('bmi-height').value) || 0;
+            let w = parseFloat(document.getElementById('bmi-weight').value) || 0;
+            let bmi = 0;
+
+            if (bmiUnitMode === 'metric') {
+                if (h > 0) bmi = w / ((h / 100) * (h / 100));
+            } else {
+                if (h > 0) bmi = (w / (h * h)) * 703;
+            }
+
+            const scoreEl = document.getElementById('bmi-score');
+            const catEl = document.getElementById('bmi-category');
+            const pointer = document.getElementById('bmi-pointer');
+            const advice = document.getElementById('bmi-advice');
+
+            scoreEl.innerText = bmi.toFixed(1);
+
+            let catName = "";
+            let catClass = "";
+            let percentage = 0;
+
+            if (bmi < 18.5) {
+                catName = "Underweight";
+                catClass = "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300";
+                percentage = Math.max(5, (bmi / 18.5) * 25);
+            } else if (bmi <= 24.9) {
+                catName = "Normal Weight";
+                catClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300";
+                percentage = 25 + ((bmi - 18.5) / (24.9 - 18.5)) * 25;
+            } else if (bmi <= 29.9) {
+                catName = "Overweight";
+                catClass = "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300";
+                percentage = 50 + ((bmi - 25) / (29.9 - 25)) * 25;
+            } else {
+                catName = "Obese";
+                catClass = "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300";
+                percentage = Math.min(95, 75 + ((bmi - 30) / 10) * 25);
+            }
+
+            catEl.innerText = catName;
+            catEl.className = `px-3 py-1 rounded-full text-xs font-bold ${catClass}`;
+            pointer.style.left = `${percentage}%`;
+
+            advice.innerHTML = `Category: <strong>${catName}</strong>. Standard healthy BMI index spans 18.5 to 24.9. Maintain balanced nutrition and physical exercise.`;
+            saveToHistory('BMI Calculator', `BMI ${bmi.toFixed(1)} (${catName})`, `Height: ${h}, Weight: ${w}`);
+        }
+
+        /* ==========================================================================
+           4. FITNESS: CALORIE & TDEE CALCULATOR
+           ========================================================================== */
+        function renderCalorieCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Age</label>
+                                <input type="number" id="cal-age" value="25" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Gender</label>
+                                <select id="cal-gender" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Height (cm)</label>
+                                <input type="number" id="cal-height" value="178" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Weight (kg)</label>
+                                <input type="number" id="cal-weight" value="75" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Activity Level</label>
+                            <select id="cal-activity" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-sky-500 outline-none">
+                                <option value="1.2">Sedentary (Little or no exercise)</option>
+                                <option value="1.375" selected>Lightly Active (Exercise 1-3 days/wk)</option>
+                                <option value="1.55">Moderately Active (Exercise 3-5 days/wk)</option>
+                                <option value="1.725">Very Active (Hard exercise 6-7 days/wk)</option>
+                                <option value="1.9">Extra Active (Very hard exercise & physical job)</option>
+                            </select>
+                        </div>
+                        <button onclick="calculateCalorie()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-fire"></i> Calculate Calories
+                        </button>
+                    </div>
+
+                    <div id="cal-results" class="lg:col-span-7 bg-slate-50 dark:bg-slate-900/60 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <!-- Injected -->
+                    </div>
+                </div>
+            `;
+            calculateCalorie();
+        }
+
+        function calculateCalorie() {
+            const age = parseFloat(document.getElementById('cal-age').value) || 0;
+            const gender = document.getElementById('cal-gender').value;
+            const height = parseFloat(document.getElementById('cal-height').value) || 0;
+            const weight = parseFloat(document.getElementById('cal-weight').value) || 0;
+            const act = parseFloat(document.getElementById('cal-activity').value);
+
+            // Mifflin-St Jeor Equation
+            let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+            if (gender === 'male') bmr += 5;
+            else bmr -= 161;
+
+            const tdee = bmr * act;
+
+            document.getElementById('cal-results').innerHTML = `
+                <div class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-slate-400 font-medium block">Basal Metabolic Rate (BMR)</span>
+                        <span class="text-2xl font-black text-slate-800 dark:text-slate-100">${Math.round(bmr)} <span class="text-xs font-normal text-slate-400">kcal/day</span></span>
+                    </div>
+                    <i class="fa-solid fa-bolt text-2xl text-amber-500"></i>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-4 bg-sky-50 dark:bg-sky-950/40 rounded-xl border border-sky-200 dark:border-sky-800/50">
+                        <span class="text-[11px] font-bold text-sky-700 dark:text-sky-300 uppercase block">Weight Loss (-0.5kg/wk)</span>
+                        <span class="text-xl font-extrabold text-sky-600 dark:text-sky-400">${Math.round(tdee - 500)}</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">Calories/day</span>
+                    </div>
+                    <div class="p-4 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/50">
+                        <span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 uppercase block">Maintain Weight</span>
+                        <span class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">${Math.round(tdee)}</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">Calories/day (TDEE)</span>
+                    </div>
+                    <div class="p-4 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-800/50">
+                        <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase block">Weight Gain (+0.5kg/wk)</span>
+                        <span class="text-xl font-extrabold text-rose-600 dark:text-rose-400">${Math.round(tdee + 500)}</span>
+                        <span class="text-[11px] text-slate-400 block mt-1">Calories/day</span>
+                    </div>
+                </div>
+            `;
+            saveToHistory('Calorie/TDEE', `${Math.round(tdee)} kcal/day`, `BMR: ${Math.round(bmr)} kcal, Maintenance: ${Math.round(tdee)} kcal`);
+        }
+
+        /* ==========================================================================
+           5. MATH: SCIENTIFIC / STANDARD CALCULATOR
+           ========================================================================== */
+        let sciExpr = "";
+        let sciMemory = 0;
+
+        function renderScientificCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto bg-slate-900 text-white rounded-3xl p-6 shadow-2xl border border-slate-700">
+                    <!-- Display -->
+                    <div class="bg-slate-800/90 rounded-2xl p-4 mb-4 text-right">
+                        <div id="sci-prev" class="text-xs text-slate-400 h-5 font-mono overflow-x-auto"></div>
+                        <div id="sci-screen" class="text-3xl font-extrabold tracking-wider font-mono text-white truncate">0</div>
+                    </div>
+
+                    <!-- Keypad -->
+                    <div class="grid grid-cols-5 gap-2 text-sm font-bold">
+                        <button onclick="sciMem('MC')" class="p-3 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl">MC</button>
+                        <button onclick="sciMem('MR')" class="p-3 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl">MR</button>
+                        <button onclick="sciMem('M+')" class="p-3 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl">M+</button>
+                        <button onclick="sciPress('C')" class="p-3 bg-rose-600/80 hover:bg-rose-600 text-white rounded-xl col-span-2">Clear</button>
+
+                        <button onclick="sciPress('sin')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">sin</button>
+                        <button onclick="sciPress('cos')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">cos</button>
+                        <button onclick="sciPress('tan')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">tan</button>
+                        <button onclick="sciPress('(')" class="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl">(</button>
+                        <button onclick="sciPress(')')" class="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl">)</button>
+
+                        <button onclick="sciPress('sqrt')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">√</button>
+                        <button onclick="sciPress('^')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">x^y</button>
+                        <button onclick="sciPress('log')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">log</button>
+                        <button onclick="sciPress('π')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl">π</button>
+                        <button onclick="sciPress('/')" class="p-3 bg-sky-600 hover:bg-sky-500 rounded-xl">÷</button>
+
+                        <button onclick="sciPress('7')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">7</button>
+                        <button onclick="sciPress('8')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">8</button>
+                        <button onclick="sciPress('9')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">9</button>
+                        <button onclick="sciPress('DEL')" class="p-3 bg-amber-600/80 hover:bg-amber-600 rounded-xl">⌫</button>
+                        <button onclick="sciPress('*')" class="p-3 bg-sky-600 hover:bg-sky-500 rounded-xl">×</button>
+
+                        <button onclick="sciPress('4')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">4</button>
+                        <button onclick="sciPress('5')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">5</button>
+                        <button onclick="sciPress('6')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">6</button>
+                        <button onclick="sciPress('-')" class="p-3 bg-sky-600 hover:bg-sky-500 rounded-xl" col-span-2>-</button>
+                        <button onclick="sciPress('+')" class="p-3 bg-sky-600 hover:bg-sky-500 rounded-xl">+</button>
+
+                        <button onclick="sciPress('1')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">1</button>
+                        <button onclick="sciPress('2')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">2</button>
+                        <button onclick="sciPress('3')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">3</button>
+                        <button onclick="sciPress('=')" class="p-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl row-span-2 col-span-2 text-xl">=</button>
+
+                        <button onclick="sciPress('0')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl col-span-2">0</button>
+                        <button onclick="sciPress('.')" class="p-3 bg-slate-700 hover:bg-slate-600 rounded-xl">.</button>
+                    </div>
+                </div>
+            `;
+            sciExpr = "";
+        }
+
+        function sciPress(val) {
+            const screen = document.getElementById('sci-screen');
+            const prev = document.getElementById('sci-prev');
+
+            if (val === 'C') {
+                sciExpr = "";
+                screen.innerText = "0";
+                prev.innerText = "";
+            } else if (val === 'DEL') {
+                sciExpr = sciExpr.slice(0, -1);
+                screen.innerText = sciExpr || "0";
+            } else if (val === '=') {
+                try {
+                    let sanitized = sciExpr
+                        .replace(/sin/g, 'Math.sin')
+                        .replace(/cos/g, 'Math.cos')
+                        .replace(/tan/g, 'Math.tan')
+                        .replace(/sqrt/g, 'Math.sqrt')
+                        .replace(/log/g, 'Math.log10')
+                        .replace(/π/g, 'Math.PI')
+                        .replace(/\^/g, '**');
+
+                    let res = eval(sanitized);
+                    prev.innerText = sciExpr + " =";
+                    screen.innerText = Number.isInteger(res) ? res : res.toFixed(6).replace(/\.?0+$/, "");
+                    saveToHistory('Scientific Math', screen.innerText, sciExpr);
+                    sciExpr = screen.innerText;
+                } catch (e) {
+                    screen.innerText = "Error";
+                }
+            } else {
+                if (sciExpr === "0") sciExpr = "";
+                sciExpr += val;
+                screen.innerText = sciExpr;
+            }
+        }
+
+        function sciMem(type) {
+            const screen = document.getElementById('sci-screen');
+            let currentVal = parseFloat(screen.innerText) || 0;
+            if (type === 'MC') sciMemory = 0;
+            if (type === 'MR') { sciExpr = sciMemory.toString(); screen.innerText = sciExpr; }
+            if (type === 'M+') { sciMemory += currentVal; showToast(`Memory Saved: ${sciMemory}`); }
+        }
+
+        /* ==========================================================================
+           6. MATH: PERCENTAGE CALCULATOR
+           ========================================================================== */
+        function renderPercentageCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="space-y-6 max-w-2xl mx-auto">
+                    <!-- Mode 1 -->
+                    <div class="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <h4 class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Mode 1: Basic Percentage</h4>
+                        <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                            <span>What is</span>
+                            <input type="number" id="p1-x" value="15" class="w-20 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <span>% of</span>
+                            <input type="number" id="p1-y" value="250" class="w-24 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <span>?</span>
+                            <button onclick="calcP1()" class="ml-auto px-4 py-1.5 bg-sky-600 text-white rounded-lg text-xs font-bold">Calculate</button>
+                        </div>
+                        <div id="p1-res" class="mt-3 text-lg font-bold text-emerald-500">Result: 37.5</div>
+                    </div>
+
+                    <!-- Mode 2 -->
+                    <div class="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <h4 class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Mode 2: Percentage Difference</h4>
+                        <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                            <input type="number" id="p2-x" value="45" class="w-20 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <span>is what % of</span>
+                            <input type="number" id="p2-y" value="180" class="w-24 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <span>?</span>
+                            <button onclick="calcP2()" class="ml-auto px-4 py-1.5 bg-sky-600 text-white rounded-lg text-xs font-bold">Calculate</button>
+                        </div>
+                        <div id="p2-res" class="mt-3 text-lg font-bold text-emerald-500">Result: 25%</div>
+                    </div>
+
+                    <!-- Mode 3 -->
+                    <div class="p-5 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <h4 class="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-3">Mode 3: Percent Increase / Decrease</h4>
+                        <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                            <span>Change from</span>
+                            <input type="number" id="p3-x" value="100" class="w-24 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <span>to</span>
+                            <input type="number" id="p3-y" value="150" class="w-24 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
+                            <button onclick="calcP3()" class="ml-auto px-4 py-1.5 bg-sky-600 text-white rounded-lg text-xs font-bold">Calculate</button>
+                        </div>
+                        <div id="p3-res" class="mt-3 text-lg font-bold text-emerald-500">Result: +50% increase</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calcP1() {
+            const x = parseFloat(document.getElementById('p1-x').value) || 0;
+            const y = parseFloat(document.getElementById('p1-y').value) || 0;
+            const res = (x / 100) * y;
+            document.getElementById('p1-res').innerText = `Result: ${res}`;
+            saveToHistory('Percentage Mode 1', `${res}`, `${x}% of ${y}`);
+        }
+
+        function calcP2() {
+            const x = parseFloat(document.getElementById('p2-x').value) || 0;
+            const y = parseFloat(document.getElementById('p2-y').value) || 0;
+            const res = (x / y) * 100;
+            document.getElementById('p2-res').innerText = `Result: ${res.toFixed(2)}%`;
+            saveToHistory('Percentage Mode 2', `${res.toFixed(2)}%`, `${x} is what % of ${y}`);
+        }
+
+        function calcP3() {
+            const x = parseFloat(document.getElementById('p3-x').value) || 0;
+            const y = parseFloat(document.getElementById('p3-y').value) || 0;
+            const diff = y - x;
+            const pct = (diff / x) * 100;
+            const label = pct >= 0 ? `+${pct.toFixed(2)}% Increase` : `${pct.toFixed(2)}% Decrease`;
+            document.getElementById('p3-res').innerText = `Result: ${label}`;
+            saveToHistory('Percentage Mode 3', label, `From ${x} to ${y}`);
+        }
+
+        /* ==========================================================================
+           7. SCIENCE: UNIT CONVERTER
+           ========================================================================== */
+        const unitData = {
+            length: {
+                name: 'Length',
+                units: { meter: 1, kilometer: 1000, centimeter: 0.01, millimeter: 0.001, inch: 0.0254, foot: 0.3048, yard: 0.9144, mile: 1609.34 }
+            },
+            mass: {
+                name: 'Mass / Weight',
+                units: { kilogram: 1, gram: 0.001, milligram: 0.000001, pound: 0.453592, ounce: 0.0283495 }
+            },
+            speed: {
+                name: 'Speed',
+                units: { 'm/s': 1, 'km/h': 0.277778, 'mph': 0.44704, 'knot': 0.514444 }
+            },
+            volume: {
+                name: 'Volume',
+                units: { liter: 1, milliliter: 0.001, gallon: 3.78541, quart: 0.946353 }
+            }
+        };
+
+        function renderUnitCalc() {
+            const container = document.getElementById('calc-panel-body');
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto space-y-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Conversion Type</label>
+                        <select id="unit-type" onchange="updateUnitDropdowns()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-semibold focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="length">Length</option>
+                            <option value="mass">Mass / Weight</option>
+                            <option value="speed">Speed</option>
+                            <option value="volume">Volume</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                        <!-- From Unit -->
+                        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                            <span class="text-xs font-bold text-slate-400">FROM</span>
+                            <input type="number" id="unit-from-val" value="1" oninput="convertUnits()" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-lg font-bold">
+                            <select id="unit-from-type" onchange="convertUnits()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"></select>
+                        </div>
+
+                        <!-- To Unit -->
+                        <div class="p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                            <span class="text-xs font-bold text-slate-400">TO</span>
+                            <input type="text" id="unit-to-val" readonly class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-200 dark:bg-slate-700/50 text-lg font-bold text-purple-600 dark:text-purple-400">
+                            <select id="unit-to-type" onchange="convertUnits()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"></select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            updateUnitDropdowns();
+        }
+
+        function updateUnitDropdowns() {
+            const category = document.getElementById('unit-type').value;
+            const units = Object.keys(unitData[category].units);
+
+            const fromSelect = document.getElementById('unit-from-type');
+            const toSelect = document.getElementById('unit-to-type');
+
+            fromSelect.innerHTML = units.map(u => `<option value="${u}">${u}</option>`).join('');
+            toSelect.innerHTML = units.map(u => `<option value="${u}">${u}</option>`).join('');
+
+            if (units.length > 1) toSelect.selectedIndex = 1;
+            convertUnits();
+        }
+
+        function convertUnits() {
+            const category = document.getElementById('unit-type').value;
+            const fromUnit = document.getElementById('unit-from-type').value;
+            const toUnit = document.getElementById('unit-to-type').value;
+            const val = parseFloat(document.getElementById('unit-from-val').value) || 0;
+
+            const baseVal = val * unitData[category].units[fromUnit];
+            const converted = baseVal / unitData[category].units[toUnit];
+
+            document.getElementById('unit-to-val').value = converted.toFixed(4).replace(/\.?0+$/, "");
+            saveToHistory('Unit Converter', `${val} ${fromUnit} = ${converted.toFixed(2)} ${toUnit}`, `${category} conversion`);
+        }
+    </script>
+</body>
+</html>
